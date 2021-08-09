@@ -1,0 +1,15 @@
+{
+    "name": "Repeater",
+    "version": "1.0",
+    "description": "chrome simulation request tool",
+    "manifest_version": 2,
+    "icons": {
+        "128": "/images/logo.png"
+    },
+    "permissions": ["cookies", "tabs", "webRequest", "http://*/*", "https://*/*", "<all_urls>", "webRequestBlocking", "declarativeNetRequest"],
+    "background": {
+        "scripts": ["./js/background.js"]
+    },
+    "browser_action": {},
+    "devtools_page": "devtools.html"
+}

@@ -1,0 +1,91 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>菜鸟教程(runoob.com)</title>
+</head>
+
+<body>
+    <!-- <form action="form.php" method="post" enctype="multipart/form-data">
+    </form> -->
+
+    <!-- 为POST请求不带任何数据 -->
+    <!-- <form action="form.php" method="post" enctype="application/x-www-form-urlencoded">
+    </form> -->
+
+    <!-- 为POST请求 key1=value1&key2=value2 -->
+    <!-- <form action="form.php" method="post" enctype="application/x-www-form-urlencoded">
+        <input type="text" name="key1" value="value1">
+        <input type="text" name="key2" value="value2">
+    </form> -->
+
+    <!-- RAW Submit -->
+    <!-- 模拟实现JSON Submit, 拦截时 {"AAA":"BBB","name":"="} 去除 ,"name":"=" 提交 -->
+    <!-- text、json、xml、html,application/javascript -->
+    <!-- <form action="form.php" method="post" enctype='text/plain'>
+        <input type="text" name='{"AAA":"BBB","name":"' value='"}'>
+    </form> -->
+    <!-- binary submit -->
+    <!-- <form action="form.php" method="post" enctype=''>
+        <input type="text" name='{"AAA":"BBB","name":"' value='"}'>
+    </form> -->
+
+    <!-- 文件Copy -->
+    <!-- 
+        保存 type name 
+        {
+            action: url
+            method: method
+            enctype: --+--
+            inputs: [
+                {
+                    type: file/text
+                    name: name
+                    value: value
+                    file: {
+                        bits: 文件内容
+                        name: 文件名称
+                        type: 文件类型
+                    }
+                },
+            
+            ]
+        }
+    -->
+    <!-- FORM 仅支持以下三种 -->
+    <!-- text/plain -->
+    <!-- multipart/form-data -->
+    <!-- application/x-www-form-urlencoded -->
+    <form action="form.php" method="post" enctype=''>
+    </form>
+    <form hidden action="form.php" method="post" enctype='multipart/form-data'>
+        <input type="file" id="file" multiple name="file">
+        <input type="file" id="back" multiple name="back">
+        <button type="submit">submit</button>
+    </form>
+</body>
+
+<script>
+    let file = document.getElementById("file");
+    let back = document.getElementById("back");
+
+    file.addEventListener('change', function() {
+        let files = this.files;
+        let dt = new DataTransfer();
+        for (let i = 0; i < files.length; i++) {
+            let f = files[i];
+            dt.items.add(
+                new File(
+                    [f.slice(0, f.size, f.type)],
+                    f.name
+                ));
+        }
+        back.files = dt.files;
+    });
+
+    function upload() {
+        document.querySelector("form").submit();
+    }
+</script>
+
+</html>

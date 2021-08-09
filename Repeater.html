@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="./style/Repeater.css">
+    <link rel="stylesheet" href="./style/font-awesome/css/font-awesome.css">
+    <script src="./style/jquery/jquery.min.js" type="text/javascript"></script>
+    <script src="./style/jquery/jquery.growl.js" type="text/javascript"></script>
+    <link href="./style/jquery/jquery.growl.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="tab" style="margin-left: 5px; margin-right: 3px;">
+        <button class="tablinks" id="load">LOAD</button>
+        <button class="tablinks" id="copy">COPY</button>
+        <button class="tablinks" id="XHR">XHR</button>
+        <button class="tablinks" id="empty">EMPTY</button>
+        <button class="tablinks" id="aboutBTN">ABOUT</button>
+        <button class="tablinks" id="encode" value="ENCODE">
+            <select id="tab_select" style="color: black;font-size: 15px;">
+                <option value="0">DECODE</option>
+                <option value="1">URL Encode</option>
+                <option value="2">URL Deep Encode</option>
+                <option value="3">Base64 Encode</option>
+                <option value="4">Hex Encode</option>
+                <option value="5">Unicode Encode</option>
+                <option value="6">MD5</option>
+                <option value="7">SHA1</option>
+                <option value="8">SHA256</option>
+                <option value="9">SHA512</option>
+            </select>
+        </button>
+        <button class="tablinks" id="decode">
+            <select id="tab_select" style="color: black;font-size: 15px;">
+                <option value="0">DECODE</option>
+                <option value="1">URL Decode</option>
+                <option value="2">URL Deep Decode</option>
+                <option value="3">Base64 Decode</option>
+                <option value="4">Hex Decode</option>
+                <option value="5">Unicode Decode</option>
+            </select>
+        </button>
+    </div>
+    <div id="operpage">
+        <form class="example" style="margin-left: 5px; margin-right: 3px;">
+            <input id="URL" type="text" placeholder="URL" name="search">
+            <button id="METHOD" class="select" type="button">
+                <select id="select">
+                    <option value="0">GET</option>
+                    <option value="1">POST</option>
+                    <option value="2">PUT</option>
+                    <option value="3">DELETE</option>
+                    <option value="4">OPTION</option>
+                    <option value="5">HEAD</option>
+                </select>
+            </button>
+        </form>
+        <form class="example" style="margin-left: 5px; margin-right: 3px;">
+            <button id="sendRequest" style="width: 100%;" type="button"><i class="fa fa-paper-plane-o"></i></button>
+        </form>
+        <div slot="expandedRowRender" slot-scope="record" style="padding: 0px;display: block;width: 100%;text-align: left;border-top: 2px solid rgb(202 205 209);">
+            <div style="vertical-align: top; display: inline-block; width: 59%;margin-left: 5px;">
+                <button class="headerButton" type="button" style="width: 100%;">REQ-BODY</button>
+                <button class="tablink" id="defaultOpenREQBODYFORM">FORM</button>
+                <button class="tablink" id="defaultOpenREQBODYRAW">RAW</button>
+
+                <div id="REQBODYFORM" style="width: 100%;" class="tabcontent">
+                    <div style="margin-top:30px;width: 100%;resize: none;height: 232px;border: 0px solid rgb(255, 255, 255);overflow: auto;background-color: white;">
+                        <form id="REQBODY-FORM" class="form-inline" style="width: 100%;text-align:center;">
+                        </form>
+                        <button id="REQBODY-ADD" type="button" style="width: 40%;margin-left: 30%;">ADD</button>
+                    </div>
+                </div>
+                <div id="REQBODYRAW" style="width: 100%;" class="tabcontent">
+                    <div style="width: 100%;">
+                        <textarea id="REQBODYRAW-TEXTAREA" style="width: 100%;resize: none;margin-top: 1px;height: 232px;border: 0px solid #ddd;padding: 0px;" placeholder="Request Body RAW" cols="30" rows="5"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div style="vertical-align: top; display: inline-block; width: 40%;"><button class="headerButton" type="button" style="width: 100%;">HEADER</button>
+                <input id="ContentTypeKey" type="text" value="Content-Type" disabled>
+                <button id="ContentTypeVal" type="button" style="font: 12px Arial, Helvetica, sans-serif; color: rgb(0, 0, 0); padding: 0px;">
+                    <select id="ContentTypeSel" style="color: black;border: 0px solid white;">
+                        <option value="0">application/x-www-form-urlencoded</option>
+                        <option value="1">multipart/form-data</option>
+                        <option value="2">application/json</option>
+                        <option value="3">application/xml</option>
+                        <option value="4">application/javascript</option>
+                        <option value="5">text/plain</option>
+                        <option value="6">multipart/form-data; boundary=----WebKitFormBoundaryywB1rOnmpPkpqWtC</option>
+                    </select>
+                </button>
+                <button class="tablink" id="defaultOpenHEADERFORM">FORM</button>
+                <button class="tablink" id="defaultOpenHEADERRAW">RAW</button>
+                <div id="HEADERFORM" style="width: 100%;" class="tabcontent">
+                    <div style="margin-top:30px;width: 100%;resize: none;height: 200px;border: 0px solid rgb(255, 255, 255);overflow: auto;background-color: white;">
+                        <form id="HEADER-FORM" class="form-inline" style="width: 100%;text-align:center;">
+                        </form>
+                        <button id="HEADER-ADD" type="button" style="width: 40%;margin-left: 30%;">ADD</button>
+                    </div>
+                </div>
+                <div id="HEADERRAW" style="width: 100%;" class="tabcontent">
+                    <div style="width: 100%;">
+                        <textarea id="HEADERRAW-TEXTAREA" style="width: 100%;resize: none;margin-top: 1px;height: 200px;border: 0px solid #ddd;padding: 0px;" placeholder="Request Header RAW" cols="30" rows="5"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div id="about" hidden>
+        <ul>
+            <li>LOAD</li>加载URL
+            <li>COPY</li>拷贝URL
+            <li>XHR</li>设置当前请求为XHR请求
+            <li>EMPTY</li>情况已输入的数据
+            <li>DECODE</li>解码 - 先选择解密方法，在选中待解密的字符串
+            <li>ENCODE</li>编码 - 先选择加密方法，在选中待加密的字符串
+        </ul>
+    </div>
+    <script src="./js/Repeater.js"></script>
+    <script src="./js/hashes.js"></script>
+</body>
+
+</html>
