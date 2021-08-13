@@ -26,8 +26,6 @@ chrome.webRequest.onSendHeaders.addListener(
         if (sessionStorage.getItem('request_header_' + details.tabId) === null) {
             sessionStorage.setItem(
                 'request_header_' + details.tabId,
-                sessionStorage.getItem('request_header_' + details.tabId) +
-                '#-BUFSNAKE-#' +
                 JSON.stringify(data),
             )
         } else {
@@ -36,13 +34,15 @@ chrome.webRequest.onSendHeaders.addListener(
                 ('#-BUFSNAKE-#' + JSON.stringify(data)).length >
                 5000000
             ) {
-                console.log('request header not storage')
+                console.log('header not storage')
             } else {
-                console.log('request header info', details)
                 sessionStorage.setItem(
                     'request_header_' + details.tabId,
+                    sessionStorage.getItem('request_header_' + details.tabId) +
+                    '#-BUFSNAKE-#' +
                     JSON.stringify(data),
                 )
+                console.log('request body info', details)
             }
         }
     }, { urls: ['<all_urls>'] }, ['extraHeaders', 'requestHeaders'],
