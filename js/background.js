@@ -23,7 +23,7 @@ chrome.webRequest.onSendHeaders.addListener(
             tabId: details.tabId,
             url: details.url,
         }
-        if (sessionStorage.getItem('request_header_' + details.tabId) !== null) {
+        if (sessionStorage.getItem('request_header_' + details.tabId) === null) {
             sessionStorage.setItem(
                 'request_header_' + details.tabId,
                 sessionStorage.getItem('request_header_' + details.tabId) +
@@ -32,7 +32,7 @@ chrome.webRequest.onSendHeaders.addListener(
             )
         } else {
             if (
-                sessionStorage.getItem('request_body_' + details.tabId).length +
+                sessionStorage.getItem('request_header_' + details.tabId).length +
                 ('#-BUFSNAKE-#' + JSON.stringify(data)).length >
                 5000000
             ) {
@@ -470,6 +470,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         chrome.tabs.executeScript(
             null, {
                 code: `
+                document.write("Start Request")
                 var opts = { "body": \`` + req.body + `\`, "method": "` + req.method + `", "credentials": "include" }
                 if(opts.method === 'HEAD') {
                     opts = { "method": "` + req.method + `", "credentials": "include" }
@@ -477,14 +478,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 fetch("` + req.url + `", opts).then(res => (
                     res.text()
                     .then(body => (
-                        document.body.innerHTML = body
+                        document.write(body)
                     ))
                     .catch(error => (
-                        document.body.innerHTML = error
+                        document.write(error)
                     ))
                 ))
                 .catch(error => (
-                    document.body.innerHTML = error
+                    document.write(error)
                 ))
                 `,
             },
