@@ -470,11 +470,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         chrome.tabs.executeScript(
             null, {
                 code: `
-                document.write("Start Request")
+                document.body.innerText = "Start Request"
                 var opts = { "body": \`` + req.body + `\`, "method": "` + req.method + `", "credentials": "include" }
                 if(opts.method === 'HEAD') {
                     opts = { "method": "` + req.method + `", "credentials": "include" }
                 }
+                document.body.innerText = ""
                 fetch("` + req.url + `", opts).then(res => (
                     res.text()
                     .then(body => (
