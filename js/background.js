@@ -409,6 +409,7 @@ function urlencode(number) {
     return char[number]
 }
 
+
 /*
 接收开发者工具发出的消息 执行顶级JS
 */
