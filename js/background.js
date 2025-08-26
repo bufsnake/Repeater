@@ -1,11 +1,42 @@
 console.log('Repeter Background GO GO GO')
 
+const storage = (() => {
+    let storage = {};
+
+    return {
+        set(key, value) {
+            if (typeof key !== 'string' || key === '') {
+                throw new Error('Key must be a non-empty string');
+            }
+            storage[key] = value;
+        },
+
+        get(key) {
+            if (typeof key !== 'string' || key === '') {
+                throw new Error('Key must be a non-empty string');
+            }
+            return storage[key]; // Returns undefined if key doesn't exist
+        },
+
+        remove(key) {
+            if (typeof key !== 'string' || key === '') {
+                throw new Error('Key must be a non-empty string');
+            }
+            delete storage[key];
+        },
+
+        clear() {
+            storage = {};
+        }
+    };
+})();
+
 // 请求
 // 获取对应的 请求方式、请求体、URL、Content-Type、TabId -> 保存全部
 // 点击LOAD/点击Repeater 时根据 TabId 找到 当前URL对应的信息,没找到则加载默认信息
 // requestId method requestHeaders tabId url
 chrome.webRequest.onSendHeaders.addListener(
-    function(details) {
+    function (details) {
         if (details.tabId === -1) {
             return
         }
@@ -23,29 +54,20 @@ chrome.webRequest.onSendHeaders.addListener(
             tabId: details.tabId,
             url: details.url,
         }
-        if (sessionStorage.getItem('request_header_' + details.tabId) === null) {
-            sessionStorage.setItem(
-                'request_header_' + details.tabId,
-                JSON.stringify(data),
-            )
+        let req_header_key = 'request_header_' + details.tabId
+        if (storage.get(req_header_key) === null || storage.get(req_header_key) === undefined) {
+            storage.set(req_header_key, JSON.stringify(data))
         } else {
-            if (
-                sessionStorage.getItem('request_header_' + details.tabId).length +
-                ('#-BUFSNAKE-#' + JSON.stringify(data)).length >
-                5000000
-            ) {
+            if (storage.get(req_header_key) + ('#-BUFSNAKE-#' + JSON.stringify(data)).length > 5000000) {
                 console.log('header not storage')
             } else {
-                sessionStorage.setItem(
-                    'request_header_' + details.tabId,
-                    sessionStorage.getItem('request_header_' + details.tabId) +
-                    '#-BUFSNAKE-#' +
-                    JSON.stringify(data),
-                )
+                storage.set(req_header_key, storage.get(req_header_key) + '#-BUFSNAKE-#' + JSON.stringify(data))
                 console.log('request body info', details)
             }
         }
-    }, { urls: ['<all_urls>'] }, ['extraHeaders', 'requestHeaders'],
+    }, {
+        urls: ['<all_urls>']
+    }, ['extraHeaders', 'requestHeaders'],
 )
 
 // get request body
@@ -64,7 +86,7 @@ requestBody:
 保存 requestId,requestBody,tabId,url,method
 */
 chrome.webRequest.onBeforeRequest.addListener(
-    function(details) {
+    function (details) {
         if (details.tabId === -1) {
             return
         }
@@ -79,7 +101,7 @@ chrome.webRequest.onBeforeRequest.addListener(
             details.requestBody !== undefined &&
             details.requestBody.formData !== undefined
         ) {
-            Object.keys(details.requestBody.formData).forEach(function(key) {
+            Object.keys(details.requestBody.formData).forEach(function (key) {
                 for (var i = 0; i < details.requestBody.formData[key].length; i++) {
                     body += key + '=' + details.requestBody.formData[key][i] + '&'
                 }
@@ -110,41 +132,31 @@ chrome.webRequest.onBeforeRequest.addListener(
             url: details.url,
             requestBody: body,
         }
-        if (sessionStorage.getItem('request_body_' + details.tabId) === null) {
-            sessionStorage.setItem(
-                'request_body_' + details.tabId,
-                JSON.stringify(data),
-            )
+        let req_body_key = 'request_body_' + details.tabId
+        if (storage.get(req_body_key) === null || storage.get(req_body_key) === undefined) {
+            storage.set(req_body_key, JSON.stringify(data))
         } else {
-            if (
-                sessionStorage.getItem('request_body_' + details.tabId).length +
-                ('#-BUFSNAKE-#' + JSON.stringify(data)).length >
-                5000000
-            ) {
+            if (storage.get(req_body_key) + ('#-BUFSNAKE-#' + JSON.stringify(data)).length > 5000000) {
                 console.log('body not storage')
             } else {
-                sessionStorage.setItem(
-                    'request_body_' + details.tabId,
-                    sessionStorage.getItem('request_body_' + details.tabId) +
-                    '#-BUFSNAKE-#' +
-                    JSON.stringify(data),
-                )
+                storage.set(req_body_key, storage.get(req_body_key) + '#-BUFSNAKE-#' + JSON.stringify(data))
                 console.log('request body info', details)
             }
         }
-    }, { urls: ['<all_urls>'] }, ['requestBody'],
+    }, {
+        urls: ['<all_urls>']
+    }, ['requestBody'],
 )
 
 // tab close
-chrome.tabs.onRemoved.addListener(function(tabid, removed) {
+chrome.tabs.onRemoved.addListener(function (tabid, removed) {
     console.log('tab close', tabid)
-    sessionStorage.removeItem('request_body_' + tabid)
-    sessionStorage.removeItem('request_header_' + tabid)
+    storage.clear()
 })
 
 // window close
-chrome.windows.onRemoved.addListener(function(windowid) {
-    sessionStorage.clear()
+chrome.windows.onRemoved.addListener(function (windowid) {
+    storage.clear()
 })
 
 function urlencode(number) {
@@ -409,22 +421,20 @@ function urlencode(number) {
     return char[number]
 }
 
-
 /*
 接收开发者工具发出的消息 执行顶级JS
 */
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log('on message', request.action)
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    console.log('on message', request, request.action)
     if (request.action === 'Load Form') {
         // 解析data创建表单，自动提交
-        console.log('on message', request.data)
-        chrome.tabs.executeScript(
-            null, {
-                code: `
+        chrome.scripting.executeScript({
+            target: {
+                tabId: request.tabId
+            },
+            func: (data) => {
                 console.log("start execute script");
-                var form_data = JSON.parse(` +
-                    JSON.stringify(request.data) +
-                    `);
+                var form_data = data;
                 var form_ele = document.createElement('form');
                 form_ele.hidden = true;
                 form_ele.setAttribute('id', "RepeaterSend");
@@ -432,7 +442,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 form_ele.setAttribute('method', form_data.method);
                 form_ele.setAttribute('enctype', form_data.enctype);
                 console.log(form_data.inputs);
-                for (var i = 0; i < form_data.inputs.length; i++) {
+                for (var i = 0; form_data.inputs !== undefined && i < form_data.inputs.length; i++) {
                     console.log(form_data.inputs[i]);
                     var inp = document.createElement('input');
                     inp.setAttribute('name', form_data.inputs[i].name);
@@ -442,7 +452,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                         dt.items.add(
                             new File(
                                 [decodeURIComponent(form_data.inputs[i].file.bits)],
-                                form_data.inputs[i].file.name, { type: form_data.inputs[i].file.type },
+                                form_data.inputs[i].file.name, {
+                                    type: form_data.inputs[i].file.type
+                                },
                             ),
                         )
                         inp.files = dt.files;
@@ -455,46 +467,59 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 document.body.appendChild(form_ele);
                 document.querySelector("#RepeaterSend").submit();
                 console.log("Success");
-                `,
             },
-            function(results) {
-                console.log(results)
-            },
-        )
-        sendResponse({ response: 'Load Finish' })
+            args: [request.data]
+        }).then(res => {
+            sendResponse({
+                success: true,
+            });
+        }).catch(err => {
+            sendResponse({
+                success: false,
+            });
+        });
     } else if (request.action === 'Get Session Storage') {
-        sendResponse({ data: sessionStorage.getItem(request.data) })
+        sendResponse({
+            data: storage.get(request.data),
+        })
     } else if (request.action === 'Send Raw Data') {
         // send raw data
-        var req = JSON.parse(request.data)
-        console.log(request)
-        chrome.tabs.executeScript(
-            null, {
-                code: `
+        chrome.scripting.executeScript({
+            target: {
+                tabId: request.tabId
+            },
+            func: (data) => {
                 document.body.innerText = "Start Request"
-                var opts = { "body": \`` + req.body + `\`, "method": "` + req.method + `", "credentials": "include" }
-                if(opts.method === 'HEAD') {
-                    opts = { "method": "` + req.method + `", "credentials": "include" }
+                var opts = {
+                    "body": data.body,
+                    "method": data.method,
+                    "credentials": "include"
+                }
+                if (opts.method === 'HEAD') {
+                    opts = {
+                        "method": data.method,
+                        "credentials": "include"
+                    }
                 }
                 document.body.innerText = ""
-                fetch("` + req.url + `", opts).then(res => (
-                    res.text()
-                    .then(body => (
-                        document.write(body)
+                fetch(data.url, opts).then(res => (
+                        res.text()
+                        .then(body => (
+                            document.body.innerHTML = body
+                        ))
+                        .catch(error => (
+                            document.body.innerHTML = error
+                        ))
                     ))
                     .catch(error => (
-                        document.write(error)
+                        document.body.innerHTML = error
                     ))
-                ))
-                .catch(error => (
-                    document.write(error)
-                ))
-                `,
             },
-            function(results) {
-                console.log('send raw data', results)
-            },
-        )
-        sendResponse({ response: 'Send Success' })
+            args: [request.data]
+        });
+        sendResponse({
+            success: true,
+        });
     }
+    return true; // 保持消息通道打开，等待异步响应
 })
